@@ -11,7 +11,8 @@ var winston = module.parent.require('winston'),
 
     mandrill,
     Emailer = {
-        receiptRegex: /^reply-([\d]+)@dev.nodebb.org$/
+        receiptRegex: /^reply-([\d]+)@dev.nodebb.org$/,
+        settings: {}
     };
 
 Emailer.init = function(data, callback) {
@@ -21,6 +22,8 @@ Emailer.init = function(data, callback) {
     };
 
     Meta.settings.get('mandrill', function(err, settings) {
+        Emailer.settings = Object.freeze(settings);
+
         if (!err && settings && settings.apiKey) {
             mandrill = require('node-mandrill')(settings.apiKey || 'Replace Me');
         } else {
@@ -42,6 +45,12 @@ Emailer.init = function(data, callback) {
 
 Emailer.send = function(data) {
     if (mandrill) {
+        var headers;
+
+        if (data.pid && Emailer.settings.hasOwnProperty('receive_domain')) {
+            headers['Reply-To'] = 'reply-' + data.pid + '@' + Emailer.settings.receive_domain;
+        }
+
         mandrill('/messages/send', {
             message: {
                 to: [{email: data.to, name: data.toName}],
@@ -49,7 +58,8 @@ Emailer.send = function(data) {
                 from_email: data.from,
                 html: data.html,
                 text: data.plaintext,
-                auto_text: !!!data.plaintext
+                auto_text: !!!data.plaintext,
+                headers: headers
             }
         }, function (err, response) {
             if (!err) {
