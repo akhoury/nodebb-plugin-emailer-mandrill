@@ -2,9 +2,17 @@
 /* globals module, require, console */
 
 var winston = module.parent.require('winston'),
+    async = module.parent.require('async'),
+
     Meta = module.parent.require('./meta'),
+    User = module.parent.require('./user'),
+    Posts = module.parent.require('./posts'),
+    Topics = module.parent.require('./topics'),
+
     mandrill,
-    Emailer = {};
+    Emailer = {
+        receiptRegex: /^reply-([\d]+)@dev.nodebb.org$/
+    };
 
 Emailer.init = function(data, callback) {
 
@@ -56,9 +64,11 @@ Emailer.send = function(data) {
     }
 };
 
-Emailer.receive = function(req, res, next) {
+Emailer.receive = function(req, res) {
+    var events;
+
     try {
-        var events = JSON.parse(req.body.mandrill_events);
+        events = JSON.parse(req.body.mandrill_events);
     } catch (err) {
         winston.error('[emailer.mandrill] Error parsing response JSON from Mandrill API "Receive" webhook');
         return res.sendStatus(400);
@@ -66,17 +76,72 @@ Emailer.receive = function(req, res, next) {
 
     console.log('POST from Mandrill contained ' + events.length + ' items');
 
-    events.forEach(function(eventObj, idx) {
-        console.log('Event', idx+1);
-        console.log('Time', eventObj.ts);
-        console.log('From', eventObj.msg.from_email);
-        console.log('Text', eventObj.msg.text);
-        console.log('Sender', eventObj.msg.sender);
-        console.log('To', eventObj.msg.to);
-        console.log('');
+    async.eachLimit(events, 5, function(eventObj, next) {
+        async.waterfall([Emailer.verifyEvent, Emailer.processEvent], next);
+    }, function(err) {
+        console.log('done!');
     });
+    // events.forEach(function(eventObj, idx) {
+        // console.log('Event', idx+1);
+        // console.log('Time', eventObj.ts);
+        // console.log('From', eventObj.msg.from_email);
+        // console.log('Text', eventObj.msg.text);
+        // console.log('Sender', eventObj.msg.sender);
+        // console.log('To', eventObj.msg.to);
+        // console.log('');
+    // });
 
     res.sendStatus(200);
+};
+
+Emailer.verifyEvent = function(eventObj, next) {
+    // This method verifies that
+    //   - the "replyTo pid" is present in the "to" field
+    //   - the "from" email corresponds to a user's email
+    //   - the pid belongs to a valid tid
+    // This method also saves `uid`, `pid`, and `tid` into eventObj, and returns it.
+    // Returns false if any of the above fail/do not match.
+    var pid, match;
+    eventObj.msg.to.forEach(function(recipient) {
+        match = recipient[0].match(Emailer.receiptRegex);
+        if (match && match[1]) { pid = match[1]; }
+    });
+
+    if (pid) {
+        eventObj.pid = pid;
+
+        async.parallel({
+            uid: async.apply(User.getUidByEmail, eventObj.msg.from_email),
+            tid: async.apply(Posts.getPostField, pid, 'tid')
+        }, function(err, data) {
+            if (!err && data.uid && data.tid) {
+                eventObj.uid = data.uid;
+                eventObj.tid = data.tid;
+                next(null, eventObj);
+            } else {
+                if (!data.uid) { winston.warn('[emailer.mandrill.verifyEvent] Could not retrieve uid'); }
+                if (!data.tid) { winston.warn('[emailer.mandrill.verifyEvent] Could not retrieve tid'); }
+                next();
+            }
+        });
+    } else {
+        winston.warn('[emailer.mandrill.verifyEvent] Could not locate post id');
+        next();
+    }
+};
+
+Emailer.processEvent = function(eventObj, callback) {
+    if (!eventObj) {
+        return callback();
+    }
+
+    winston.verbose('[emailer.mandrill] Processing incoming email reply by uid ' + eventObj.uid + ' to pid ' + eventObj.pid);
+    Topics.reply({
+        uid: eventObj.uid,
+        toPid: eventObj.pid,
+        tid: eventObj.tid,
+        content: eventObj.msg.text
+    }, callback);
 };
 
 Emailer.admin = {
