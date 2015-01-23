@@ -1,17 +1,20 @@
+'use strict';
+/* globals module, require, console */
+
 var winston = module.parent.require('winston'),
     Meta = module.parent.require('./meta'),
-    Mandrill,
+    mandrill,
     Emailer = {};
 
 Emailer.init = function(data, callback) {
 
-    var render = function(req, res, next) {
+    var render = function(req, res) {
         res.render('admin/plugins/emailer-mandrill', {});
     };
 
     Meta.settings.get('mandrill', function(err, settings) {
         if (!err && settings && settings.apiKey) {
-            Mandrill = require('node-mandrill')(settings.apiKey || 'Replace Me');
+            mandrill = require('node-mandrill')(settings.apiKey || 'Replace Me');
         } else {
             winston.error('[plugins/emailer-mandrill] API key not set!');
         }
@@ -27,8 +30,8 @@ Emailer.init = function(data, callback) {
 };
 
 Emailer.send = function(data) {
-    if (Mandrill) {
-        Mandrill('/messages/send', {
+    if (mandrill) {
+        mandrill('/messages/send', {
             message: {
                 to: [{email: data.to, name: data.toName}],
                 subject: data.subject,
@@ -51,18 +54,25 @@ Emailer.send = function(data) {
 };
 
 Emailer.receive = function(req, res, next) {
-    console.log('received POST', req.body);
-    res.status(200).json({
-        a: 'ok!'
+    var events = req.body.mandrill_events;
+    console.log('POST from Mandrill contained ' + events.length + ' items');
+
+    events.forEach(function(eventObj, idx) {
+        console.log('Event', idx+1);
+        console.log('Time', eventObj.ts);
+        console.log('From', eventObj.from_email);
+        console.log('Text', eventObj.text);
     });
+
+    res.sendStatus(200);
 };
 
 Emailer.admin = {
     menu: function(custom_header, callback) {
         custom_header.plugins.push({
-            "route": '/plugins/emailer-mandrill',
-            "icon": 'fa-envelope-o',
-            "name": 'Emailer (Mandrill)'
+            'route': '/plugins/emailer-mandrill',
+            'icon': 'fa-envelope-o',
+            'name': 'Emailer (Mandrill)'
         });
 
         callback(null, custom_header);
