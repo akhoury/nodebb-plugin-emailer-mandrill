@@ -124,12 +124,12 @@ Emailer.verifyEvent = function(eventObj, next) {
             } else {
                 if (!data.uid) { winston.warn('[emailer.mandrill.verifyEvent] Could not retrieve uid'); }
                 if (!data.tid) { winston.warn('[emailer.mandrill.verifyEvent] Could not retrieve tid'); }
-                next();
+                next(undefined, false);
             }
         });
     } else {
         winston.warn('[emailer.mandrill.verifyEvent] Could not locate post id');
-        next();
+        next(undefined, false);
     }
 };
 
