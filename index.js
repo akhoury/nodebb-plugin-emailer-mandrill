@@ -18,7 +18,7 @@ Emailer.init = function(data, callback) {
 
         data.router.get('/admin/plugins/emailer-mandrill', data.middleware.admin.buildHeader, render);
         data.router.get('/api/admin/plugins/emailer-mandrill', render);
-        data.router.post('/emailer/mandrill', Emailer.receive);
+        data.router.post('/emailer-mandrill', Emailer.receive);
 
         if (typeof callback === 'function') {
             callback();
