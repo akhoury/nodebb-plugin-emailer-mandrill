@@ -18,6 +18,7 @@ Emailer.init = function(data, callback) {
 
         data.router.get('/admin/plugins/emailer-mandrill', data.middleware.admin.buildHeader, render);
         data.router.get('/api/admin/plugins/emailer-mandrill', render);
+        data.router.post('/emailer/mandrill', Emailer.receive);
 
         if (typeof callback === 'function') {
             callback();
@@ -47,6 +48,13 @@ Emailer.send = function(data) {
     } else {
         winston.warn('[plugins/emailer-mandrill] API key not set, not sending email as Mandrill object is not instantiated.');
     }
+};
+
+Emailer.receive = function(req, res, next) {
+    console.log('received POST', req.body);
+    res.status(200).json({
+        a: 'ok!'
+    });
 };
 
 Emailer.admin = {
