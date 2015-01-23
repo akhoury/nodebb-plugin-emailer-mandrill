@@ -3,6 +3,7 @@
 
 var winston = module.parent.require('winston'),
     async = module.parent.require('async'),
+    nconf = module.parent.require('nconf'),
 
     Meta = module.parent.require('./meta'),
     User = module.parent.require('./user'),
@@ -18,7 +19,9 @@ var winston = module.parent.require('winston'),
 Emailer.init = function(data, callback) {
 
     var render = function(req, res) {
-        res.render('admin/plugins/emailer-mandrill', {});
+        res.render('admin/plugins/emailer-mandrill', {
+            url: nconf.get('url')
+        });
     };
 
     Meta.settings.get('mandrill', function(err, settings) {
