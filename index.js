@@ -79,7 +79,7 @@ Emailer.receive = function(req, res) {
     async.eachLimit(events, 5, function(eventObj, next) {
         async.waterfall([
             async.apply(Emailer.verifyEvent, eventObj),
-            async.apply(Emailer.processEvent)
+            Emailer.processEvent
         ], next);
     }, function(err) {
         console.log('done!');
