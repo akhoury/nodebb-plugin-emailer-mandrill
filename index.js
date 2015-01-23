@@ -54,14 +54,21 @@ Emailer.send = function(data) {
 };
 
 Emailer.receive = function(req, res, next) {
-    var events = req.body.mandrill_events;
+    try {
+        var events = JSON.parse(req.body.mandrill_events);
+    } catch (err) {
+        winston.error('[emailer.mandrill] Error parsing response JSON from Mandrill API "Receive" webhook');
+        return res.sendStatus(400);
+    }
+
     console.log('POST from Mandrill contained ' + events.length + ' items');
 
-    Array.forEach(events, function(eventObj, idx) {
+    events.forEach(function(eventObj, idx) {
         console.log('Event', idx+1);
         console.log('Time', eventObj.ts);
         console.log('From', eventObj.from_email);
         console.log('Text', eventObj.text);
+        console.log('');
     });
 
     res.sendStatus(200);
