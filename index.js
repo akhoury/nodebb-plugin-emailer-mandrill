@@ -77,7 +77,10 @@ Emailer.receive = function(req, res) {
     console.log('POST from Mandrill contained ' + events.length + ' items');
 
     async.eachLimit(events, 5, function(eventObj, next) {
-        async.waterfall([Emailer.verifyEvent, Emailer.processEvent], next);
+        async.waterfall([
+            async.apply(Emailer.verifyEvent, eventObj),
+            async.apply(Emailer.processEvent)
+        ], next);
     }, function(err) {
         console.log('done!');
     });
