@@ -66,8 +66,8 @@ Emailer.receive = function(req, res, next) {
     events.forEach(function(eventObj, idx) {
         console.log('Event', idx+1);
         console.log('Time', eventObj.ts);
-        console.log('From', eventObj.from_email);
-        console.log('Text', eventObj.text);
+        console.log('From', eventObj.msg.from_email);
+        console.log('Text', eventObj.msg.text);
         console.log('');
     });
 
