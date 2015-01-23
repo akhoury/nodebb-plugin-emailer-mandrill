@@ -57,7 +57,7 @@ Emailer.receive = function(req, res, next) {
     var events = req.body.mandrill_events;
     console.log('POST from Mandrill contained ' + events.length + ' items');
 
-    events.forEach(function(eventObj, idx) {
+    Array.forEach(events, function(eventObj, idx) {
         console.log('Event', idx+1);
         console.log('Time', eventObj.ts);
         console.log('From', eventObj.from_email);
