@@ -55,7 +55,7 @@
 					<li>
 					    Establish the following routes:
 					    <ul>
-					    	<li><code>reply-*</code>, post to URL: <code>{url}/emailer-mandrill</code></li>
+					    	<li><code>reply-*</code>, post to URL: <code>{url}/emailer-mandrill/reply</code></li>
 					    </ul>
 					</li>
 				</ol>
