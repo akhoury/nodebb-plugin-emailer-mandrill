@@ -43,17 +43,17 @@
 					This plugin can also be configured to receive emails if configured properly via Mandrill.
 				</p>
 				<p>
-					<a href="http://help.mandrill.com/entries/21699367-Inbound-Email-Processing-Overview">Following these instructions</a>:
+					Follow these instructions:
 				</p>
 				<ol>
 					<li>
-						Set up your incoming email domain
+						<a href="http://help.mandrill.com/entries/21699367-Inbound-Email-Processing-Overview">Set up your incoming email domain</a>
 					</li>
 					<li>
 						Specify your incoming email domain the field below
 					</li>
 					<li>
-					    Establish the following routes:
+					    Establish the following routes (<a href="https://mandrillapp.com/inbound/routes">configurable in this page</a>):
 					    <ul>
 					    	<li><code>reply-*</code>, post to URL: <code>{url}/emailer-mandrill/reply</code></li>
 					    </ul>
