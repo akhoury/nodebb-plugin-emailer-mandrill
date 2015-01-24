@@ -155,7 +155,7 @@ Emailer.resolveUserOrGuest = function(eventObj, callback) {
             async.waterfall([
                 async.apply(Topics.getTopicField, eventObj.tid, 'cid'),
                 function(cid, next) {
-                    Privileges.categories.groupPrivileges(eventObj.cid, 'guests', next);
+                    Privileges.categories.groupPrivileges(cid, 'guests', next);
                 }
             ], function(err, privileges) {
                 if (privileges['groups:topics:reply']) {
@@ -172,6 +172,7 @@ Emailer.resolveUserOrGuest = function(eventObj, callback) {
                     callback(null, eventObj);
                 } else {
                     // Guests can't post here
+                    winston.verbose('[emailer.mandrill] Received reply by guest to pid ' + eventObj.pid + ', but guests are not allowed to post here.');
                     callback(null, false);
                 }
             });
