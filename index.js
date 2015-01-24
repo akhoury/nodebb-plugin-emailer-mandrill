@@ -9,6 +9,7 @@ var winston = module.parent.require('winston'),
     User = module.parent.require('./user'),
     Posts = module.parent.require('./posts'),
     Topics = module.parent.require('./topics'),
+    Privileges = module.parent.require('./privileges'),
 
     mandrill,
     Emailer = {
@@ -92,6 +93,7 @@ Emailer.receive = function(req, res) {
     async.eachLimit(events, 5, function(eventObj, next) {
         async.waterfall([
             async.apply(Emailer.verifyEvent, eventObj),
+            Emailer.resolveUserOrGuest,
             Emailer.processEvent
         ], next);
     }, function(err) {
@@ -113,9 +115,8 @@ Emailer.receive = function(req, res) {
 Emailer.verifyEvent = function(eventObj, next) {
     // This method verifies that
     //   - the "replyTo pid" is present in the "to" field
-    //   - the "from" email corresponds to a user's email
     //   - the pid belongs to a valid tid
-    // This method also saves `uid`, `pid`, and `tid` into eventObj, and returns it.
+    // This method also saves `pid` and `tid` into eventObj, and returns it.
     // Returns false if any of the above fail/do not match.
     var pid, match;
     eventObj.msg.to.forEach(function(recipient) {
@@ -126,24 +127,56 @@ Emailer.verifyEvent = function(eventObj, next) {
     if (pid) {
         eventObj.pid = pid;
 
-        async.parallel({
-            uid: async.apply(User.getUidByEmail, eventObj.msg.from_email),
-            tid: async.apply(Posts.getPostField, pid, 'tid')
-        }, function(err, data) {
-            if (!err && data.uid && data.tid) {
-                eventObj.uid = data.uid;
-                eventObj.tid = data.tid;
+        Posts.getPostField(pid, 'tid', function(err, tid) {
+            if (!err && tid) {
+                eventObj.tid = tid;
                 next(null, eventObj);
             } else {
-                if (!data.uid) { winston.warn('[emailer.mandrill.verifyEvent] Could not retrieve uid'); }
-                if (!data.tid) { winston.warn('[emailer.mandrill.verifyEvent] Could not retrieve tid'); }
+                if (!tid) { winston.warn('[emailer.mandrill.verifyEvent] Could not retrieve tid'); }
                 next(undefined, false);
             }
-        });
+        })
     } else {
         winston.warn('[emailer.mandrill.verifyEvent] Could not locate post id');
         next(undefined, false);
     }
+};
+
+Emailer.resolveUserOrGuest = function(eventObj, callback) {
+    // This method takes the event object, reads the sender email and resolves it to a uid
+    // if the email is set in the system. If not, and guest posting is enabled, the email
+    // is treated as a guest instead.
+    User.getUidByEmail(eventObj.msg.from_email, function(err, uid) {
+        if (uid) {
+            eventObj.uid = uid;
+            callback(null, eventObj);
+        } else {
+            // See if guests can post to the category in question
+            async.waterfall([
+                async.apply(Topics.getTopicField, eventObj.tid, 'cid'),
+                function(cid, next) {
+                    Privileges.categories.groupPrivileges(eventObj.cid, 'guests', next);
+                }
+            ], function(err, privileges) {
+                if (privileges['groups:topics:reply']) {
+                    eventObj.uid = 0;
+
+                    if (parseInt(Meta.config.allowGuestHandles, 10) === 1) {
+                        if (eventObj.msg.from_name && eventObj.msg.from_name.length) {
+                            eventObj.handle = eventObj.msg.from_name;
+                        } else {
+                            eventObj.handle = eventObj.msg.from_email;
+                        }
+                    }
+
+                    callback(null, eventObj);
+                } else {
+                    // Guests can't post here
+                    callback(null, false);
+                }
+            });
+        }
+    });
 };
 
 Emailer.processEvent = function(eventObj, callback) {
@@ -156,7 +189,8 @@ Emailer.processEvent = function(eventObj, callback) {
         uid: eventObj.uid,
         toPid: eventObj.pid,
         tid: eventObj.tid,
-        content: eventObj.msg.text
+        content: eventObj.msg.text,
+        handle: (eventObj.uid === 0 && eventObj.hasOwnProperty('handle') ? eventObj.handle : undefined)
     }, callback);
 };
 
@@ -173,5 +207,3 @@ Emailer.admin = {
 };
 
 module.exports = Emailer;
-
-
