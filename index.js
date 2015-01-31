@@ -97,19 +97,9 @@ Emailer.receive = function(req, res) {
             Emailer.processEvent
         ], next);
     }, function(err) {
-        console.log('done!');
+        err.eventObj = eventObj;
+        Emailer.handleError(err, res);
     });
-    // events.forEach(function(eventObj, idx) {
-        // console.log('Event', idx+1);
-        // console.log('Time', eventObj.ts);
-        // console.log('From', eventObj.msg.from_email);
-        // console.log('Text', eventObj.msg.text);
-        // console.log('Sender', eventObj.msg.sender);
-        // console.log('To', eventObj.msg.to);
-        // console.log('');
-    // });
-
-    res.sendStatus(200);
 };
 
 Emailer.verifyEvent = function(eventObj, next) {
@@ -133,12 +123,12 @@ Emailer.verifyEvent = function(eventObj, next) {
                 next(null, eventObj);
             } else {
                 if (!tid) { winston.warn('[emailer.mandrill.verifyEvent] Could not retrieve tid'); }
-                next(undefined, false);
+                next(new Error('invalid-data'));
             }
-        })
+        });
     } else {
         winston.warn('[emailer.mandrill.verifyEvent] Could not locate post id');
-        next(undefined, false);
+        next(new Error('invalid-data'));
     }
 };
 
@@ -193,6 +183,18 @@ Emailer.processEvent = function(eventObj, callback) {
         content: eventObj.msg.text,
         handle: (eventObj.uid === 0 && eventObj.hasOwnProperty('handle') ? eventObj.handle : undefined)
     }, callback);
+};
+
+Emailer.handleError = function(err, res) {
+    if (err) {
+        switch(err.message) {
+            case 'invalid-data':
+                // Bounce a return back to sender
+                break;
+        }
+    }
+
+    res.sendStatus(200);
 };
 
 Emailer.admin = {
