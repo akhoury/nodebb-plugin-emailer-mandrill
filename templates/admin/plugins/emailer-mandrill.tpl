@@ -36,6 +36,43 @@
 				</form>
 			</div>
 		</div>
+		<div class="panel panel-default">
+			<div class="panel-heading">Incoming Email Settings</div>
+			<div class="panel-body">
+				<p>
+					This plugin can also be configured to receive emails if configured properly via Mandrill.
+				</p>
+				<p>
+					Follow these instructions:
+				</p>
+				<ol>
+					<li>
+						<a href="http://help.mandrill.com/entries/21699367-Inbound-Email-Processing-Overview">Set up your incoming email domain</a>
+					</li>
+					<li>
+						Specify your incoming email domain the field below
+					</li>
+					<li>
+					    Establish the following routes (<a href="https://mandrillapp.com/inbound/routes">configurable in this page</a>):
+					    <ul>
+					    	<li><code>reply-*</code>, post to URL: <code>{url}/emailer-mandrill/reply</code></li>
+					    </ul>
+					</li>
+				</ol>
+				<form role="form" class="mandrill-settings">
+					<fieldset>
+						<div class="row">
+							<div class="col-sm-6">
+								<div class="form-group">
+									<label for="receive_domain">Incoming Domain</label>
+									<input placeholder="example.org" type="text" class="form-control" id="receive_domain" name="receive_domain" />
+								</div>
+							</div>
+						</div>
+					</fieldset>
+				</form>
+			</div>
+		</div>
 	</div>
 	<div class="col-lg-3">
 		<div class="panel panel-default">
