@@ -95,11 +95,11 @@ Emailer.receive = function(req, res) {
             async.apply(Emailer.verifyEvent, eventObj),
             Emailer.resolveUserOrGuest,
             Emailer.processEvent
-        ], next);
-    }, function(err) {
-        err.eventObj = eventObj;
-        Emailer.handleError(err, res);
-    });
+        ], function(err) {
+            Emailer.handleError(err, eventObj);
+            next(); // Don't block the continued handling of received events!
+        });
+    }, callback);
 };
 
 Emailer.verifyEvent = function(eventObj, next) {
@@ -185,7 +185,7 @@ Emailer.processEvent = function(eventObj, callback) {
     }, callback);
 };
 
-Emailer.handleError = function(err, res) {
+Emailer.handleError = function(err, eventObj) {
     if (err) {
         switch(err.message) {
             case 'invalid-data':
@@ -193,8 +193,6 @@ Emailer.handleError = function(err, res) {
                 break;
         }
     }
-
-    res.sendStatus(200);
 };
 
 Emailer.admin = {
