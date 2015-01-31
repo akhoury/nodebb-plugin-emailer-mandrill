@@ -10,6 +10,7 @@ var winston = module.parent.require('winston'),
     Posts = module.parent.require('./posts'),
     Topics = module.parent.require('./topics'),
     Privileges = module.parent.require('./privileges'),
+    SocketPosts = module.parent.require('./socket.io/posts'),
 
     mandrill,
     Emailer = {
@@ -94,7 +95,8 @@ Emailer.receive = function(req, res) {
         async.waterfall([
             async.apply(Emailer.verifyEvent, eventObj),
             Emailer.resolveUserOrGuest,
-            Emailer.processEvent
+            Emailer.processEvent,
+            Emailer.notifyUsers
         ], function(err) {
             Emailer.handleError(err, eventObj);
             next(); // Don't block the continued handling of received events!
@@ -183,6 +185,20 @@ Emailer.processEvent = function(eventObj, callback) {
         content: eventObj.msg.text,
         handle: (eventObj.uid === 0 && eventObj.hasOwnProperty('handle') ? eventObj.handle : undefined)
     }, callback);
+};
+
+Emailer.notifyUsers = function(postData, next) {
+    var result = {
+            posts: [postData],
+            privileges: {
+                'topics:reply': true
+            },
+            'reputation:disabled': parseInt(Meta.config['reputation:disabled'], 10) === 1,
+            'downvote:disabled': parseInt(Meta.config['downvote:disabled'], 10) === 1,
+        };
+
+    SocketPosts.notifyOnlineUsers(parseInt(postData.uid, 10), result);
+    next();
 };
 
 Emailer.handleError = function(err, eventObj) {
