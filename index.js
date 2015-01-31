@@ -101,7 +101,9 @@ Emailer.receive = function(req, res) {
             Emailer.handleError(err, eventObj);
             next(); // Don't block the continued handling of received events!
         });
-    }, callback);
+    }, function() {
+        res.sendStatus(200);
+    });
 };
 
 Emailer.verifyEvent = function(eventObj, next) {
