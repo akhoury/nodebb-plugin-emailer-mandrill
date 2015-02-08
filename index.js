@@ -14,7 +14,6 @@ var winston = module.parent.require('winston'),
 
     mandrill,
     Emailer = {
-        receiptRegex: /^reply-([\d]+)@dev.nodebb.org$/,
         settings: {}
     };
 
@@ -28,6 +27,7 @@ Emailer.init = function(data, callback) {
 
     Meta.settings.get('mandrill', function(err, settings) {
         Emailer.settings = Object.freeze(settings);
+        Emailer.receiptRegex = new RegExp('^reply-([\\d]+)@' + Emailer.settings.receive_domain + '$');
 
         if (!err && settings && settings.apiKey) {
             mandrill = require('node-mandrill')(settings.apiKey || 'Replace Me');
