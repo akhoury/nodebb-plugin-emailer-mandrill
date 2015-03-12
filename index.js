@@ -56,17 +56,36 @@ Emailer.send = function(data) {
             headers['Reply-To'] = 'reply-' + data.pid + '@' + Emailer.settings.receive_domain;
         }
 
-        mandrill('/messages/send', {
-            message: {
-                to: [{email: data.to, name: data.toName}],
-                subject: data.subject,
-                from_email: data.from,
-                html: data.html,
-                text: data.plaintext,
-                auto_text: !!!data.plaintext,
-                headers: headers
+        async.waterfall([
+            function(next) {
+                if (headers.hasOwnProperty('Reply-To')) {
+                    Posts.getPostField(data.pid, 'uid', next);
+                } else {
+                    next(null, false);
+                }
+            },
+            function(uid, next) {
+                if (uid === false) { return next(null, {}); }
+
+                User.getUserFields(uid, ['email', 'username'], function(err, userData) {
+                    next(null, userData);
+                });
+            },
+            function(userData, next) {
+                mandrill('/messages/send', {
+                    message: {
+                        to: [{email: data.to, name: data.toName}],
+                        subject: data.subject,
+                        from_email: userData.email || data.from,
+                        from_name: userData.username ? userData.username + ' (' + (Meta.config.title || 'NodeBB') + ')' : undefined,
+                        html: data.html,
+                        text: data.plaintext,
+                        auto_text: !!!data.plaintext,
+                        headers: headers
+                    }
+                }, next);
             }
-        }, function (err, response) {
+        ], function (err, response) {
             if (!err) {
                 winston.verbose('[emailer.mandrill] Sent `' + data.template + '` email to uid ' + data.uid);
             } else {
