@@ -58,7 +58,9 @@ Emailer.send = function(data) {
 
         async.waterfall([
             function(next) {
-                if (headers.hasOwnProperty('Reply-To')) {
+                if (data.fromUid) {
+                    next(null, data.fromUid);
+                } else if (data.pid) {
                     Posts.getPostField(data.pid, 'uid', next);
                 } else {
                     next(null, false);
@@ -67,7 +69,7 @@ Emailer.send = function(data) {
             function(uid, next) {
                 if (uid === false) { return next(null, {}); }
 
-                User.getUserFields(uid, ['email', 'username'], function(err, userData) {
+                User.getUserFields(parseInt(uid, 10), ['email', 'username'], function(err, userData) {
                     next(null, userData);
                 });
             },
