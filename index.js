@@ -79,7 +79,7 @@ Emailer.send = function(data) {
                         to: [{email: data.to, name: data.toName}],
                         subject: data.subject,
                         from_email: userData.email || data.from,
-                        from_name: userData.username ? userData.username + ' (' + (Meta.config.title || 'NodeBB') + ')' : undefined,
+                        from_name: userData.username ? userData.username : undefined,
                         html: data.html,
                         text: data.plaintext,
                         auto_text: !!!data.plaintext,
