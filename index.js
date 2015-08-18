@@ -61,6 +61,7 @@ Emailer.send = function(data) {
                 to: [{email: data.to, name: data.toName}],
                 subject: data.subject,
                 from_email: data.from,
+                from_name: data.from_name,
                 html: data.html,
                 text: data.plaintext,
                 auto_text: !!!data.plaintext,
