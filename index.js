@@ -55,19 +55,37 @@ Emailer.send = function(data) {
         if (data.pid && Emailer.settings.hasOwnProperty('receive_domain')) {
             headers['Reply-To'] = 'reply-' + data.pid + '@' + Emailer.settings.receive_domain;
         }
-
-        mandrill('/messages/send', {
-            message: {
-                to: [{email: data.to, name: data.toName}],
-                subject: data.subject,
-                from_email: data.from,
-                from_name: data.from_name,
-                html: data.html,
-                text: data.plaintext,
-                auto_text: !!!data.plaintext,
-                headers: headers
+        async.waterfall([
+            function(next) {
+                if (data.fromUid) {
+                    next(null, data.fromUid);
+                } else if (data.pid) {
+                    Posts.getPostField(data.pid, 'uid', next);
+                } else {
+                    next(null, false);
+                }
+            },
+            function(uid, next) {
+                if (uid === false) { return next(null, {}); }
+                User.getUserFields(parseInt(uid, 10), ['email', 'username'], function(err, userData) {
+                    next(null, userData);
+                });
+            },
+            function(userData, next) {
+                mandrill('/messages/send', {
+                    message: {
+                        to: [{email: data.to, name: data.toName}],
+                        subject: data.subject,
+                        from_email: userData.email || data.from,
+                        from_name: data.from_name || userData.username || undefined,
+                        html: data.html,
+                        text: data.plaintext,
+                        auto_text: !data.plaintext,
+                        headers: headers
+                    }
+                }, next);
             }
-        }, function (err, response) {
+        ], function (err, response) {
             if (!err) {
                 winston.verbose('[emailer.mandrill] Sent `' + data.template + '` email to uid ' + data.uid);
             } else {
