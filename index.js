@@ -48,7 +48,7 @@ Emailer.init = function(data, callback) {
     });
 };
 
-Emailer.send = function(data) {
+Emailer.send = function(data, callback) {
     if (mandrill) {
         var headers = {};
 
@@ -92,6 +92,7 @@ Emailer.send = function(data) {
                 winston.warn('[emailer.mandrill] Unable to send `' + data.template + '` email to uid ' + data.uid + '!!');
                 winston.warn('[emailer.mandrill] Error Stringified:' + JSON.stringify(err));
             }
+            callback(err);
         });
     } else {
         winston.warn('[plugins/emailer-mandrill] API key not set, not sending email as Mandrill object is not instantiated.');
