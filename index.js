@@ -92,7 +92,7 @@ Emailer.send = function(data, callback) {
                 winston.warn('[emailer.mandrill] Unable to send `' + data.template + '` email to uid ' + data.uid + '!!');
                 winston.warn('[emailer.mandrill] Error Stringified:' + JSON.stringify(err));
             }
-            callback(err);
+            callback(err, data);
         });
     } else {
         winston.warn('[plugins/emailer-mandrill] API key not set, not sending email as Mandrill object is not instantiated.');
