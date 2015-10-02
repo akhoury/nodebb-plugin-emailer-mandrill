@@ -10,7 +10,7 @@ var winston = module.parent.require('winston'),
     Posts = module.parent.require('./posts'),
     Topics = module.parent.require('./topics'),
     Privileges = module.parent.require('./privileges'),
-    SocketPosts = module.parent.require('./socket.io/posts'),
+    SocketHelpers = module.parent.require('./socket.io/helpers'),
 
     mandrill,
     Emailer = {
@@ -85,7 +85,7 @@ Emailer.send = function(data, callback) {
                     }
                 }, next);
             }
-        ], function (err, response) {
+        ], function (err) {
             if (!err) {
                 winston.verbose('[emailer.mandrill] Sent `' + data.template + '` email to uid ' + data.uid);
             } else {
@@ -219,7 +219,7 @@ Emailer.notifyUsers = function(postData, next) {
             'downvote:disabled': parseInt(Meta.config['downvote:disabled'], 10) === 1,
         };
 
-    SocketPosts.notifyOnlineUsers(parseInt(postData.uid, 10), result);
+    SocketHelpers.notifyOnlineUsers(parseInt(postData.uid, 10), result);
     next();
 };
 
