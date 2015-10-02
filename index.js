@@ -96,6 +96,7 @@ Emailer.send = function(data, callback) {
         });
     } else {
         winston.warn('[plugins/emailer-mandrill] API key not set, not sending email as Mandrill object is not instantiated.');
+        callback(new Error('[[error:mandril-api-key-not-set]]'));
     }
 };
 
