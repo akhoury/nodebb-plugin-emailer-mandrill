@@ -67,9 +67,21 @@ Emailer.send = function(data, callback) {
             },
             function(uid, next) {
                 if (uid === false) { return next(null, {}); }
-                User.getUserFields(parseInt(uid, 10), ['email', 'username'], function(err, userData) {
-                    next(null, userData);
-                });
+                User.getSettings(uid, function(err, settings) {
+                    if (err) {
+                        return next(err);
+                    }
+
+                    if (settings.showemail) {
+                        User.getUserFields(parseInt(uid, 10), ['email', 'username'], function(err, userData) {
+                            next(null, userData);
+                        });
+                    } else {
+                        User.getUserFields(parseInt(uid, 10), ['username'], function(err, userData) {
+                            next(null, userData);
+                        });
+                    }
+                })
             },
             function(userData, next) {
                 mandrill('/messages/send', {
