@@ -9,6 +9,7 @@ var winston = module.parent.require('winston'),
     User = module.parent.require('./user'),
     Posts = module.parent.require('./posts'),
     Topics = module.parent.require('./topics'),
+    hostEmailer = module.parent.require('./emailer'),
     Privileges = module.parent.require('./privileges'),
     SocketHelpers = module.parent.require('./socket.io/helpers'),
 
@@ -236,10 +237,19 @@ Emailer.handleError = function(err, eventObj) {
     if (err) {
         switch(err.message) {
             case '[[error:no-privileges]]':
-                // Bounce a return back to sender
-                break;
             case 'invalid-data':
                 // Bounce a return back to sender
+                hostEmailer.sendToEmail('bounce', eventObj.msg.from_email, Meta.config.defaultLang || 'en_GB', {
+                    site_title: Meta.config.title || 'NodeBB',
+                    subject: 'Re: ' + eventObj.msg.subject,
+                    messageBody: eventObj.msg.html
+                }, function(err) {
+                    if (err) {
+                        winston.error('[emailer.mandrill] Unable to bounce email back to sender! ' + err.message);
+                    } else {
+                        winston.verbose('[emailer.mandrill] Bounced email back to sender (' + eventObj.msg.from_email + ')');
+                    }
+                });
                 break;
         }
     }
