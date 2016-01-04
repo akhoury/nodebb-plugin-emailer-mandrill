@@ -242,7 +242,7 @@ Emailer.handleError = function(err, eventObj) {
             case 'invalid-data':
                 // Bounce a return back to sender
                 hostEmailer.sendToEmail('bounce', eventObj.msg.from_email, Meta.config.defaultLang || 'en_GB', {
-                    site_title: meta.config.title || 'NodeBB',
+                    site_title: Meta.config.title || 'NodeBB',
                     messageBody: eventObj.msg.html
                 }, function(err) {
                     if (err) {
