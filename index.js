@@ -200,7 +200,7 @@ Emailer.resolveUserOrGuest = function(eventObj, callback) {
                 } else {
                     // Guests can't post here
                     winston.verbose('[emailer.mandrill] Received reply by guest to pid ' + eventObj.pid + ', but guests are not allowed to post here.');
-                    callback(null, false);
+                    callback(new Error('[[error:no-privileges]]'));
                 }
             });
         }
@@ -208,10 +208,6 @@ Emailer.resolveUserOrGuest = function(eventObj, callback) {
 };
 
 Emailer.processEvent = function(eventObj, callback) {
-    if (!eventObj) {
-        return callback();
-    }
-
     winston.verbose('[emailer.mandrill] Processing incoming email reply by uid ' + eventObj.uid + ' to pid ' + eventObj.pid);
     Topics.reply({
         uid: eventObj.uid,
@@ -239,6 +235,9 @@ Emailer.notifyUsers = function(postData, next) {
 Emailer.handleError = function(err, eventObj) {
     if (err) {
         switch(err.message) {
+            case '[[error:no-privileges]]':
+                // Bounce a return back to sender
+                break;
             case 'invalid-data':
                 // Bounce a return back to sender
                 break;
