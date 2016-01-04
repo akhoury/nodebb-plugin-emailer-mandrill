@@ -4,7 +4,9 @@
 
 <hr />
 
-{messageBody}
+<blockquote>
+	{messageBody}
+</blockquote>
 
 <hr />
 
