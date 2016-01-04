@@ -9,5 +9,6 @@
         { "hook": "filter:email.send", "method": "send"},
         { "hook": "filter:admin.header.build", "method": "admin.menu"},
         { "hook": "static:app.load", "method": "init" }
-    ]
+    ],
+    "languages": "languages"
 }
