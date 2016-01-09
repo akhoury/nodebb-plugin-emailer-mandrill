@@ -1,6 +1,6 @@
 {
   "name": "nodebb-plugin-emailer-mandrill",
-  "version": "0.3.5",
+  "version": "0.3.6",
   "description": "An emailer plugin for NodeBB using Mandrill as a third party service",
   "main": "index.js",
   "repository": {
