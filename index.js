@@ -22,7 +22,8 @@ Emailer.init = function(data, callback) {
 
     var render = function(req, res) {
         res.render('admin/plugins/emailer-mandrill', {
-            url: nconf.get('url')
+            url: nconf.get('url'),
+            base_url: nconf.get('base_url')
         });
     };
 

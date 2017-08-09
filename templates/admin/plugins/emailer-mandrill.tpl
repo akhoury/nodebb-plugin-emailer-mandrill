@@ -55,7 +55,7 @@
 					<li>
 					    Establish the following routes (<a href="https://mandrillapp.com/inbound/routes">configurable in this page</a>):
 					    <ul>
-					    	<li><code>reply-*</code>, post to URL: <code>{url}/emailer-mandrill/reply</code></li>
+					    	<li><code>reply-*</code>, post to URL: <code>{base_url}/emailer-mandrill/reply</code></li>
 					    </ul>
 					</li>
 				</ol>
