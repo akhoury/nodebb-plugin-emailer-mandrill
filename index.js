@@ -214,7 +214,7 @@ Emailer.processEvent = function(eventObj, callback) {
         uid: eventObj.uid,
         toPid: eventObj.pid,
         tid: eventObj.tid,
-        content: eventObj.msg.text,
+        content: require('node-email-reply-parser')(eventObj.msg.text, true),
         handle: (eventObj.uid === 0 && eventObj.hasOwnProperty('handle') ? eventObj.handle : undefined)
     }, callback);
 };
