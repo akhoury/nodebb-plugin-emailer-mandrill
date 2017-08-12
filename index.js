@@ -89,7 +89,7 @@ Emailer.send = function(data, callback) {
                     message: {
                         to: [{email: data.to, name: data.toName}],
                         subject: data.subject,
-                        from_email: userData.email || data.from,
+                        from_email: data.from,
                         from_name: data.from_name || userData.username || undefined,
                         html: data.html,
                         text: data.plaintext,
