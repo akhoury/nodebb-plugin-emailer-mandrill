@@ -21,6 +21,7 @@
   "homepage": "https://github.com/akhoury/nodebb-plugin-emailer-mandrill",
   "dependencies": {
     "path": "~0.4.9",
+    "node-email-reply-parser": "^0.1.0",
     "node-mandrill": "~1.0.1"
   },
   "nbbpm": {
