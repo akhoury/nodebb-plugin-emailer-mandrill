@@ -54,15 +54,15 @@ Emailer.send = function(data, callback) {
     if (mandrill) {
         var headers = {};
 
-        if (data.pid && Emailer.settings.hasOwnProperty('receive_domain')) {
-            headers['Reply-To'] = 'reply-' + data.pid + '@' + Emailer.settings.receive_domain;
+        if (data._raw.notification.pid && Emailer.settings.hasOwnProperty('receive_domain')) {
+            headers['Reply-To'] = 'reply-' + data._raw.notification.pid + '@' + Emailer.settings.receive_domain;
         }
         async.waterfall([
             function(next) {
                 if (data.fromUid) {
                     next(null, data.fromUid);
-                } else if (data.pid) {
-                    Posts.getPostField(data.pid, 'uid', next);
+                } else if (data._raw.notification.pid) {
+                    Posts.getPostField(data._raw.notification.pid, 'uid', next);
                 } else {
                     next(null, false);
                 }
