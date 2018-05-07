@@ -4,6 +4,7 @@
 var winston = module.parent.require('winston'),
     async = module.parent.require('async'),
     nconf = module.parent.require('nconf'),
+    _ = module.parent.require('lodash'),
 
     Meta = module.parent.require('./meta'),
     User = module.parent.require('./user'),
@@ -54,14 +55,14 @@ Emailer.send = function(data, callback) {
     if (mandrill) {
         var headers = {};
 
-        if (data._raw.notification.pid && Emailer.settings.hasOwnProperty('receive_domain')) {
+        if (_.get(data, '_raw.notification.pid') && Emailer.settings.hasOwnProperty('receive_domain')) {
             headers['Reply-To'] = 'reply-' + data._raw.notification.pid + '@' + Emailer.settings.receive_domain;
         }
         async.waterfall([
             function(next) {
                 if (data.fromUid) {
                     next(null, data.fromUid);
-                } else if (data._raw.notification.pid) {
+                } else if (_.get(data, '_raw.notification.pid')) {
                     Posts.getPostField(data._raw.notification.pid, 'uid', next);
                 } else {
                     next(null, false);
