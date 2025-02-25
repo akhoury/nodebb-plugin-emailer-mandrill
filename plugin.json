@@ -10,6 +10,9 @@
         { "hook": "filter:admin.header.build", "method": "admin.menu"},
         { "hook": "static:app.load", "method": "init" }
     ],
+    "modules": {
+        "../admin/plugins/emailer-mandrill.js": "public/admin.js"
+    },
     "languages": "languages",
     "defaultLang": "en_GB"
 }

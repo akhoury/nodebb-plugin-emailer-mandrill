@@ -1,10 +1,10 @@
 'use strict';
 /* globals module, require */
 
-var winston = module.parent.require('winston'),
-    async = module.parent.require('async'),
-    nconf = module.parent.require('nconf'),
-    _ = module.parent.require('lodash'),
+var winston = require.main.require('winston'),
+    async = require.main.require('async'),
+    nconf = require.main.require('nconf'),
+    _ = require.main.require('lodash'),
 
     Meta = require.main.require('./src/meta'),
     User = require.main.require('./src/user'),
@@ -14,17 +14,18 @@ var winston = module.parent.require('winston'),
     Privileges = require.main.require('./src/privileges'),
     SocketHelpers = require.main.require('./src/socket.io/helpers'),
 
-    mandrill,
-    Emailer = {
-        settings: {}
-    };
+    mandrill;
+
+const Emailer = module.exports;
+Emailer.settings = {};
 
 Emailer.init = function(data, callback) {
 
     var render = function(req, res) {
         res.render('admin/plugins/emailer-mandrill', {
+            title: 'Emailer (Mandrill)',
             url: nconf.get('url'),
-            base_url: nconf.get('base_url')
+            base_url: nconf.get('base_url'),
         });
     };
 
@@ -269,4 +270,4 @@ Emailer.admin = {
     }
 };
 
-module.exports = Emailer;
+
